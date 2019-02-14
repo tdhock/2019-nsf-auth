@@ -1,0 +1,100 @@
+** 14 Feb 2019
+
+[[file:figure-histogram-features.R]] used to create [[http://bl.ocks.org/tdhock/raw/13ecb5e01b36066e9bf4450686bc57eb/][interactive data viz]]
+explaining how to compute histogram features.
+
+Machine learning papers:
+
+- Not a lot of work on network packet analysis.
+- Lots of papers about image/face recognition.
+- Some papers about video/audio data.
+- Multi-task learning should be useful.
+- Creating a benchmark database is essential.
+
+Samy Bengio, Johnny Mariéthoz. International Workshop on Multiple
+Classifier Systems MCS 2007: Multiple Classifier Systems pp
+513-522. Biometric Person Authentication Is a Multiple Classifier
+Problem. Authors argue that authentication is a multi-task learning
+problem so can benefit from models with parameter sharing (between
+authenticated persons). Highlights importance of centralized database
+for labels.
+
+Lots of work using photographic biometrics, e.g. face and eyes.
+
+#+BEGIN_SRC 
+@inproceedings{Dunkelman:2013:PSA:2541806.2512511,
+ author = {Dunkelman, Orr and Osadchy, Margarita and Sharif, Mahmood},
+ title = {POSTER: Secure authentication from facial attributeswith no privacy loss},
+ booktitle = {Proceedings of the 2013 ACM SIGSAC conference on Computer \&\#38; communications security},
+ series = {CCS '13},
+ year = {2013},
+ isbn = {978-1-4503-2477-9},
+ location = {Berlin, Germany},
+ pages = {1403--1406},
+ numpages = {4},
+ url = {http://doi.acm.org/10.1145/2508859.2512511},
+ doi = {10.1145/2508859.2512511},
+ acmid = {2512511},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {biometric credentials, face recognition, privacy-preserving},
+} 
+#+END_SRC
+
+Some papers about intrusion detection and DDoS attacks. 
+
+Web Server Protection against Application Layer DDoS Attacks using
+Machine Learning and Traffic Authentication. Jema David Ndibwile,
+A. Govardhan, Kazuya Okada, Youki Kadobayashi. 2015 IEEE 39th Annual
+International Computers, Software & Applications Conference.
+
+International Conference on Computer Vision and Graphics ICCVG 2012:
+Computer Vision and Graphics pp 669-676 | Cite as Eye Blink Based
+Detection of Liveness in Biometric Authentication Systems Using
+Conditional Random Fields. Mariusz SzwochPaweł Pieniążek.
+
+Multimodal Authentication using Asynchronous HMMs.  Samy Bengio. Used
+M2VTS database: 185 recordings of 37 subjects, each containing audio
+and visual signals of the subject pronouncing the digits from zero to
+nine. Accuracy metric: Half Total Error Rate (HTER), a measure often
+used to assess the quality of a verification system.
+
+Pigeon, S., Vandendorpe, L.: The M2VTS multimodal face database
+(release 1.00).  In: Proceedings of the First International Conference
+on Audio- and Video-based Biometric Person Authentication
+ABVPA. (1997)
+
+Deep Secure: A Fast and Simple Neural Network based approach for User
+Authentication and Identification via Keystroke Dynamics. Saket
+Maheshwary, Soumyajit Ganguly, Vikram Pudi.
+
+Benchmark database for predicting users based on keystroke
+dynamics. [Killourhy and Maxion, 2009] Kevin S. Killourhy and Roy
+A. Maxion. Comparing anomaly-detection algorithms for keystroke
+dynamics. In DSN, 2009.
+
+
+** 25 Jan 2019
+
+[[file:example_desktop_network_traffic.R]] explores feature computation.
+- could open/analyze [[file:example_network_activity_desktop]] with R as
+  this is a plain text file -- csv with columns
+  "No.","Time","Source","Destination","Protocol","Length","Info"
+- could NOT open [[file:example_desktop_network_traffic.pcapng]] as this
+  is a binary file.
+- for numeric data (e.g. packet length) we can compute
+  multi-resolution bin count features, which capture the
+  distribution. could be specific/conditional to protocol, or other
+  categorical variables. can learn a function e.g.
+  - if there is at least one DNS packet querying google.com with Length >
+    1000 then predict authorized.
+  - if there are less than 10 TCP packets from 134.114.109.190 of any
+    size then predict un-authorized.
+- Info field is different for each protocol -- will need to write a
+  feature extraction function (e.g. using regex) for each protocol.
+- each observation is a different 1 second interval.
+- can use usual supervised learning methods
+- probably better to use methods that use the sequence/time
+  info. e.g. conditional random field.
+
+
