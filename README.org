@@ -1,3 +1,11 @@
+** 20 Feb 2019
+
+[[file:figure-histogram-features-labels.R]] makes
+
+[[file:figure-histogram-features-labels.png]]
+
+[[file:figure-histogram-features-labels-heatmap.png]]
+
 ** 14 Feb 2019
 
 [[file:figure-histogram-features.R]] used to create [[http://bl.ocks.org/tdhock/raw/13ecb5e01b36066e9bf4450686bc57eb/][interactive data viz]]
