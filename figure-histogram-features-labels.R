@@ -32,13 +32,13 @@ gg <- ggplot()+
   scale_color_manual(values=c("purple", "deepskyblue"))+
   geom_tile(aes(
     floor.Time, Protocol, fill=log10(packets)),
-    data=packets.Prot.dt)+
-  geom_tile(aes(
-    floor.Time, Protocol),
-    fill=NA,
-    size=1,
-    color="black",
-    data=box.dt)+
+    data=packets.Prot.dt[Protocol.int %% 2 == 0])+
+  ## geom_tile(aes(
+  ##   floor.Time, Protocol),
+  ##   fill=NA,
+  ##   size=1,
+  ##   color="black",
+  ##   data=box.dt)+
   geom_text(aes(
     Time, "Unobserved/Truth", color=user, label=substring(user, 1, 1)),
     data=user.dt)+
@@ -53,28 +53,43 @@ gg <- ggplot()+
     panel.grid=element_blank(),
     panel.margin=grid::unit(0, "lines"))+
   facet_grid(facet ~ ., scales="free", space="free")
-png("figure-histogram-features-labels-heatmap.png", 8, 6, units="in", res=300)
+png("figure-histogram-features-labels-heatmap.png", 7, 3, units="in", res=300)
 print(gg)
 dev.off()
-floor.factor <- 10
-activity.dt[, floor.Length := floor(Length/floor.factor)]
-packets.Length.hist.dt <- activity.dt[, list(
-  packets=.N
-), by=list(floor.Time, Protocol, box, floor.Length)]
-packets.Length.hist.dt[, min.Length := floor.Length*floor.factor]
-packets.Length.hist.dt[, max.Length := (floor.Length+1)*floor.factor]
+length.facet <- "Length of individual TLSv1.2 packets in time window=31"
 select.dt <- data.table(box.dt)
 select.dt[, facet := NULL]
-rect.dt <- data.table(
-      facet="Histogram
-features",
-packets.Length.hist.dt[select.dt, on=list(Protocol, floor.Time)])
+floor.vec <- c(10, 40, 160)
+histfacet <- function(x){
+  paste(
+    "Histogram",
+    "features",
+    paste0("size=", x),
+    sep="\n")
+}
+ffac <- function(x){
+  factor(x, c(length.facet, histfacet(floor.vec)))
+}
+rect.dt.list <- list()
+for(floor.factor in floor.vec){
+  activity.dt[, floor.Length := floor(Length/floor.factor)]
+  packets.Length.hist.dt <- activity.dt[select.dt, on=list(
+    Protocol, floor.Time)][, list(
+      packets=.N
+    ), by=list(floor.Length)]
+  packets.Length.hist.dt[, norm.packets := (packets-min(packets))/(max(packets)-min(packets))]
+  packets.Length.hist.dt[, min.Length := floor.Length*floor.factor]
+  packets.Length.hist.dt[, max.Length := (floor.Length+1)*floor.factor]
+  rect.dt.list[[paste(floor.factor)]] <- data.table(
+    facet=ffac(histfacet(floor.factor)),
+    packets.Length.hist.dt)
+}
+rect.dt <- do.call(rbind, rect.dt.list)[norm.packets>0]
 point.dt <- data.table(
-  facet="Length of individual packets",
+  facet=ffac(length.facet),
   activity.dt[select.dt, on=list(Protocol, floor.Time)])
 gg <- ggplot()+
-  ggtitle("Packet length histogram features
-for time window=31, protocol=TLSv1.2")+
+  ##ggtitle("Packet length histogram features")+
   theme_bw()+
   facet_grid(. ~ facet, scales="free", space="free")+
   theme(panel.margin=grid::unit(0, "lines"))+
@@ -83,11 +98,13 @@ for time window=31, protocol=TLSv1.2")+
     breaks=seq(0, 1, by=0.5)
   )+
   ylab("Packet length")+
-  scale_fill_gradient(low="grey95", high="blue")+
+  scale_fill_gradient("Relative
+number of
+packets", low="grey95", high="blue")+
   geom_rect(aes(
     xmin=2, xmax=2.2,
     ymin=min.Length, ymax=max.Length,
-    fill=log10(packets)),
+    fill=norm.packets),
     color=NA,
     data=rect.dt)+
   geom_point(aes(
@@ -96,6 +113,6 @@ for time window=31, protocol=TLSv1.2")+
     fill=NA,
     shape=1,
     color="black")
-png("figure-histogram-features-labels.png", 6, 6, units="in", res=300)
+png("figure-histogram-features-labels.png", 7, 2.5, units="in", res=300)
 print(gg)
 dev.off()
