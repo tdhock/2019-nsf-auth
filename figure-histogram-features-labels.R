@@ -19,10 +19,12 @@ packets.Prot.dt <- activity.dt[, list(
   packets=.N,
   facet=ffac(packet.name)
 ), by=list(floor.Time, Protocol.int, Protocol, box)]
+change.after <- 27
 user.dt <- data.table(
   facet=ffac("User"), rbind(
-    data.table(user="Alice", Time=0:27),
-    data.table(user="Bob", Time=28:41)))
+    data.table(user="Alice", Time=0:change.after),
+    data.table(user="Bob", Time=(change.after+1):41)))
+change.dt <- data.table(change=change.after+0.5)
 library(ggplot2)
 set.seed(100)
 box.dt <- packets.Prot.dt[floor.Time==31 & Protocol=="TLSv1.2"]
@@ -33,6 +35,15 @@ gg <- ggplot()+
   geom_tile(aes(
     floor.Time, Protocol, fill=log10(packets)),
     data=packets.Prot.dt[Protocol.int %% 2 == 0])+
+  geom_text(aes(
+    change, "PIMv2", label=" Change-point"),
+    data=data.table(facet=ffac(packet.name), change.dt),
+    hjust=0,
+    color="grey50")+
+  geom_vline(aes(
+    xintercept=change),
+    color="grey50",
+    data=change.dt)+
   ## geom_tile(aes(
   ##   floor.Time, Protocol),
   ##   fill=NA,
@@ -56,6 +67,7 @@ gg <- ggplot()+
 png("figure-histogram-features-labels-heatmap.png", 7, 3, units="in", res=300)
 print(gg)
 dev.off()
+
 length.facet <- "Length of individual TLSv1.2 packets in time window=31"
 select.dt <- data.table(box.dt)
 select.dt[, facet := NULL]
